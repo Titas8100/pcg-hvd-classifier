@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pcg-hvd-classifier - Automated PCG Heart Valve Disease Detection</title>
+  <meta name="description"
+    content="AI-powered phonocardiogram (PCG) signal analysis for automated detection of Heart Valve Diseases (Aortic Stenosis, Mitral Regurgitation, Mitral Stenosis, Mitral Valve Prolapse) using DWT, MFCCs, and Machine Learning.">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <!-- Ambient background glow effects -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+  <div class="bg-glow bg-glow-3"></div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-logo">
+        <div class="heart-pulse-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path
+              d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+            <path d="M3.22 12H7l2-4 3 8 2-6 1.5 3 1.5-1h3.78" stroke="var(--primary)" stroke-width="1.8" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>pcg-hvd-classifier</h1>
+          <p class="subtitle">PCG Signal Processing & Automated Heart Valve Disease Detection</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btnMethodology" class="btn btn-secondary" title="View Research Study & Methodology">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 16v-4" />
+            <path d="M12 8h.01" />
+          </svg>
+          Study & Benchmark
+        </button>
+        <a href="https://github.com/yaseen21khan/Classification-of-Heart-Sound-Signal-Using-Multiple-Features-"
+          target="_blank" rel="noopener" class="btn btn-secondary" title="View Source GitHub Dataset">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+          </svg>
+          Dataset Ref [24]
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+
+    <!-- Top Hero Info Banner -->
+    <section class="info-banner card glass">
+      <div class="banner-pulse"></div>
+      <div class="banner-text">
+        <span class="banner-tag">CLINICAL AUSCULTATION AI</span>
+        <h3>Non-Invasive Valvular Disorder Screening from Phonocardiograms</h3>
+        <p>Upload any digital stethoscope PCG recording (WAV, MP3, M4A, FLAC, OGG) or select a clinical reference sample
+          to analyze cardiac cycles for murmurs across 5 pathology classes.</p>
+      </div>
+      <div class="banner-metrics">
+        <div class="stat-item">
+          <span class="stat-number">99.6%</span>
+          <span class="stat-label">Model Accuracy</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">1,000</span>
+          <span class="stat-label">PCG Database</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">&lt; 10ms</span>
+          <span class="stat-label">In-Browser Latency</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Grid Layout: Left Upload & Visualizer | Right Results -->
+    <div class="dashboard-grid">
+
+      <!-- LEFT COLUMN -->
+      <div class="grid-col-left">
+
+        <!-- Audio Upload Section -->
+        <section class="card glass upload-card" id="uploadCard">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              <h2>Upload PCG Recording</h2>
+            </div>
+            <span class="badge badge-accent">Multi-Format Audio</span>
+          </div>
+
+          <!-- Drag and Drop Dropzone -->
+          <div class="dropzone" id="dropzone">
+            <input type="file" id="audioFileInput" accept="audio/*, .wav, .mp3, .m4a, .flac, .ogg, .aac, .webm"
+              class="file-input-hidden">
+            <div class="dropzone-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M9 18V5l12-2v13" />
+                <circle cx="6" cy="18" r="3" />
+                <circle cx="18" cy="16" r="3" />
+              </svg>
+            </div>
+            <p class="dropzone-title">Drag & Drop PCG audio file here</p>
+            <p class="dropzone-sub">or <button type="button" id="btnBrowse" class="link-btn">browse your device</button>
+            </p>
+            <div class="supported-formats">
+              <span>WAV</span><span>MP3</span><span>M4A</span><span>FLAC</span><span>OGG</span><span>AAC</span>
+            </div>
+          </div>
+
+          <!-- Active File Info & Audio Controls -->
+          <div class="file-status-panel" id="fileStatusPanel" style="display: none;">
+            <div class="file-info-row">
+              <div class="file-details">
+                <span class="file-icon">🎵</span>
+                <div>
+                  <h4 id="activeFileName">heart_sound.wav</h4>
+                  <p id="activeFileMeta" class="file-meta">8,000 Hz • 2.45 sec • Mono</p>
+                </div>
+              </div>
+              <button id="btnRemoveFile" class="btn-icon" title="Clear recording">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Custom Playback Player -->
+            <div class="player-controls">
+              <button id="btnPlayPause" class="btn-play">
+                <svg id="playIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+                <svg id="pauseIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"
+                  style="display: none;">
+                  <rect x="6" y="4" width="4" height="16" />
+                  <rect x="14" y="4" width="4" height="16" />
+                </svg>
+              </button>
+
+              <div class="timeline-container">
+                <input type="range" id="playbackScrubber" min="0" max="100" value="0" step="0.1" class="scrubber">
+                <div class="time-display">
+                  <span id="currentTime">0:00.0</span> / <span id="totalDuration">0:00.0</span>
+                </div>
+              </div>
+
+              <div class="volume-control">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                </svg>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.9" class="volume-slider">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Waveform & Spectrogram Oscilloscope -->
+        <section class="card glass visualizer-card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              <h2>PCG Signal Oscilloscope</h2>
+            </div>
+            <div class="vis-tabs">
+              <button class="tab-btn active" id="tabWaveform">Waveform</button>
+              <button class="tab-btn" id="tabSpectrogram">Spectrogram</button>
+            </div>
+          </div>
+
+          <div class="canvas-wrapper">
+            <canvas id="waveformCanvas" width="800" height="220"></canvas>
+            <canvas id="spectrogramCanvas" width="800" height="220" style="display: none;"></canvas>
+            <div class="canvas-overlay-grid"></div>
+            <div class="playhead" id="playhead"></div>
+          </div>
+
+          <div class="vis-legend">
+            <span class="legend-item"><span class="legend-dot" style="background: var(--primary);"></span> Time
+              Signal</span>
+            <span class="legend-item"><span class="legend-dot" style="background: var(--accent);"></span> Envelope
+              Peak</span>
+            <span class="legend-item"><span class="legend-dot" style="background: #eab308;"></span> Murmur Turbulence
+              Zone</span>
+          </div>
+        </section>
+
+        <!-- Clinical Reference Samples Soundboard -->
+        <section class="card glass library-card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              </svg>
+              <h2>Interactive Clinical Sample Library (5 Classes)</h2>
+            </div>
+            <span class="badge badge-outline">Database Ground Truth</span>
+          </div>
+          <p class="section-desc">Listen to verified recordings from the 1,000-sample benchmark dataset or click
+            <strong>"Analyze Sample"</strong> to diagnose:</p>
+
+          <div class="samples-grid">
+            <!-- Normal -->
+            <div class="sample-card normal-card" data-class="N" data-file="samples/normal_sample.wav">
+              <div class="sample-header">
+                <span class="sample-badge badge-normal">Normal (N)</span>
+                <button class="sample-play-btn" title="Play Normal Heart Sound">
+                  <svg class="play-svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
+                  <svg class="pause-svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"
+                    style="display:none;">
+                    <rect x="6" y="4" width="4" height="16" />
+                    <rect x="14" y="4" width="4" height="16" />
+                  </svg>
+                </button>
+              </div>
+              <h4>Healthy Control</h4>
+              <p>Physiologic S1/S2 closure sounds with crisp pauses and no murmurs.</p>
+              <button class="btn btn-sm btn-sample-load" data-class="N">Analyze This Sample</button>
+            </div>
+
+            <!-- Aortic Stenosis -->
+            <div class="sample-card as-card" data-class="AS" data-file="samples/aortic_stenosis_sample.wav">
+              <div class="sample-header">
+                <span class="sample-badge badge-as">Aortic Stenosis (AS)</span>
+                <button class="sample-play-btn" title="Play Aortic Stenosis">
+                  <svg class="play-svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
+                  <svg class="pause-svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"
+                    style="display:none;">
+                    <rect x="6" y="4" width="4" height="16" />
+                    <rect x="14" y="4" width="4" height="16" />
+                  </svg>
+                </button>
+              </div>
+              <h4>Aortic Stenosis</h4>
+              <p>Harsh diamond-shaped crescendo-decrescendo systolic murmur.</p>
+              <button class="btn btn-sm btn-sample-load" data-class="AS">Analyze This Sample</button>
+            </div>
+
+            <!-- Mitral Regurgitation -->
+            <div class="sample-card mr-card" data-class="MR" data-file="samples/mitral_regurgitation_sample.wav">
+              <div class="sample-header">
+                <span class="sample-badge badge-mr">Mitral Regurgitation (MR)</span>
+                <button class="sample-play-btn" title="Play Mitral Regurgitation">
+                  <svg class="play-svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
+                  <svg class="pause-svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"
+                    style="display:none;">
+                    <rect x="6" y="4" width="4" height="16" />
+                    <rect x="14" y="4" width="4" height="16" />
+                  </svg>
+                </button>
+              </div>
+              <h4>Mitral Regurgitation</h4>
+              <p>High-pitched holosystolic murmur blowing throughout systole.</p>
+              <button class="btn btn-sm btn-sample-load" data-class="MR">Analyze This Sample</button>
+            </div>
+
+            <!-- Mitral Stenosis -->
+            <div class="sample-card ms-card" data-class="MS" data-file="samples/mitral_stenosis_sample.wav">
+              <div class="sample-header">
+                <span class="sample-badge badge-ms">Mitral Stenosis (MS)</span>
+                <button class="sample-play-btn" title="Play Mitral Stenosis">
+                  <svg class="play-svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
+                  <svg class="pause-svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"
+                    style="display:none;">
+                    <rect x="6" y="4" width="4" height="16" />
+                    <rect x="14" y="4" width="4" height="16" />
+                  </svg>
+                </button>
+              </div>
+              <h4>Mitral Stenosis</h4>
+              <p>Opening snap followed by a low-pitched rumbling diastolic murmur.</p>
+              <button class="btn btn-sm btn-sample-load" data-class="MS">Analyze This Sample</button>
+            </div>
+
+            <!-- Mitral Valve Prolapse -->
+            <div class="sample-card mvp-card" data-class="MVP" data-file="samples/mitral_valve_prolapse_sample.wav">
+              <div class="sample-header">
+                <span class="sample-badge badge-mvp">Mitral Valve Prolapse (MVP)</span>
+                <button class="sample-play-btn" title="Play MVP Heart Sound">
+                  <svg class="play-svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
+                  <svg class="pause-svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"
+                    style="display:none;">
+                    <rect x="6" y="4" width="4" height="16" />
+                    <rect x="14" y="4" width="4" height="16" />
+                  </svg>
+                </button>
+              </div>
+              <h4>Mitral Valve Prolapse</h4>
+              <p>Mid-systolic click followed by a late systolic high-frequency murmur.</p>
+              <button class="btn btn-sm btn-sample-load" data-class="MVP">Analyze This Sample</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- RIGHT COLUMN: DIAGNOSIS & BENCHMARK -->
+      <div class="grid-col-right">
+
+        <!-- Diagnostic Result Card -->
+        <section class="card glass result-card" id="resultCard">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+              </svg>
+              <h2>Diagnostic Evaluation</h2>
+            </div>
+            <span class="badge" id="evalStatusBadge">Ready</span>
+          </div>
+
+          <!-- Empty State -->
+          <div class="empty-state" id="emptyState">
+            <div class="empty-icon">🩺</div>
+            <h4>No PCG Recording Loaded</h4>
+            <p>Upload an audio file or select any clinical sample from the library to trigger real-time feature
+              extraction and classification.</p>
+          </div>
+
+          <!-- Active Results Container -->
+          <div class="active-results" id="activeResults" style="display: none;">
+
+            <!-- Diagnosis Hero Banner -->
+            <div class="diagnosis-banner" id="diagnosisBanner">
+              <div class="diag-header">
+                <span class="diag-subtitle">DETECTED CONDITION</span>
+                <span class="confidence-badge" id="confidenceBadge">98.4% Confidence</span>
+              </div>
+              <h3 class="diag-title" id="diagTitle">Aortic Stenosis (AS)</h3>
+              <p class="diag-description" id="diagDescription">
+                Acoustic analysis shows marked systolic turbulence with a crescendo-decrescendo frequency envelope
+                characteristic of aortic valve narrowing.
+              </p>
+            </div>
+
+            <!-- Probability Breakdown Bars -->
+            <div class="prob-section">
+              <h4>Class Probability Distribution</h4>
+              <div class="prob-bars">
+
+                <!-- Normal -->
+                <div class="prob-row">
+                  <div class="prob-label">
+                    <span>Normal (N)</span>
+                    <span id="probValN">0.0%</span>
+                  </div>
+                  <div class="prob-bar-bg">
+                    <div class="prob-bar-fill bar-n" id="barN" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <!-- Aortic Stenosis -->
+                <div class="prob-row">
+                  <div class="prob-label">
+                    <span>Aortic Stenosis (AS)</span>
+                    <span id="probValAS">0.0%</span>
+                  </div>
+                  <div class="prob-bar-bg">
+                    <div class="prob-bar-fill bar-as" id="barAS" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <!-- Mitral Regurgitation -->
+                <div class="prob-row">
+                  <div class="prob-label">
+                    <span>Mitral Regurgitation (MR)</span>
+                    <span id="probValMR">0.0%</span>
+                  </div>
+                  <div class="prob-bar-bg">
+                    <div class="prob-bar-fill bar-mr" id="barMR" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <!-- Mitral Stenosis -->
+                <div class="prob-row">
+                  <div class="prob-label">
+                    <span>Mitral Stenosis (MS)</span>
+                    <span id="probValMS">0.0%</span>
+                  </div>
+                  <div class="prob-bar-bg">
+                    <div class="prob-bar-fill bar-ms" id="barMS" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <!-- Mitral Valve Prolapse -->
+                <div class="prob-row">
+                  <div class="prob-label">
+                    <span>Mitral Valve Prolapse (MVP)</span>
+                    <span id="probValMVP">0.0%</span>
+                  </div>
+                  <div class="prob-bar-bg">
+                    <div class="prob-bar-fill bar-mvp" id="barMVP" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Extracted Bio-Acoustic Descriptors -->
+            <div class="metrics-grid">
+              <div class="metric-box">
+                <span class="m-label">Spectral Centroid</span>
+                <span class="m-val" id="valCentroid">-- Hz</span>
+              </div>
+              <div class="metric-box">
+                <span class="m-label">Zero Crossing Rate</span>
+                <span class="m-val" id="valZCR">--</span>
+              </div>
+              <div class="metric-box">
+                <span class="m-label">Spectral Rolloff (85%)</span>
+                <span class="m-val" id="valRolloff">-- Hz</span>
+              </div>
+              <div class="metric-box">
+                <span class="m-label">Wavelet Entropy</span>
+                <span class="m-val" id="valEntropy">--</span>
+              </div>
+            </div>
+
+            <!-- Clinical Pathology Details -->
+            <div class="clinical-box">
+              <h5>Physiological & Auscultation Notes</h5>
+              <div class="clinical-notes" id="clinicalNotes">
+                Normal heart sound recording showing crisp S1 and S2 intervals. No pathological murmurs detected in
+                systole or diastole.
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Research Benchmark Summary Card -->
+        <section class="card glass benchmark-summary-card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 20V10" />
+                <path d="M12 20V4" />
+                <path d="M6 20v-6" />
+              </svg>
+              <h2>10-Fold CV Model Benchmark</h2>
+            </div>
+            <span class="badge badge-accent">1,000 PCG Database</span>
+          </div>
+
+          <table class="benchmark-mini-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Accuracy</th>
+                <th>Macro F1</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="highlight-row">
+                <td><strong>Extra Trees (Enhanced)</strong></td>
+                <td><span class="badge-pill pill-best">99.60%</span></td>
+                <td>99.60%</td>
+              </tr>
+              <tr>
+                <td>Random Forest (300 Trees)</td>
+                <td><span class="badge-pill">98.90%</span></td>
+                <td>98.90%</td>
+              </tr>
+              <tr>
+                <td>Gradient Boosting (GBDT)</td>
+                <td><span class="badge-pill">98.60%</span></td>
+                <td>98.60%</td>
+              </tr>
+              <tr>
+                <td>Tuned RBF SVM</td>
+                <td><span class="badge-pill">98.20%</span></td>
+                <td>98.20%</td>
+              </tr>
+              <tr>
+                <td>Multi-Layer Perceptron (MLP)</td>
+                <td><span class="badge-pill">97.90%</span></td>
+                <td>97.90%</td>
+              </tr>
+              <tr>
+                <td>PyTorch 1D-CNN (Waveforms)</td>
+                <td><span class="badge-pill">96.33%</span></td>
+                <td>96.33%</td>
+              </tr>
+              <tr>
+                <td>Quadratic SVM (Report Baseline)</td>
+                <td><span class="badge-pill">96.40%</span></td>
+                <td>96.39%</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="benchmark-caption">Cross-validated over 1,000 audio recordings (200/class) from Son et al. (2018)
+            and Titas Routh (2023).</p>
+        </section>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Research Study & Methodology Modal -->
+  <div class="modal-overlay" id="modalMethodology">
+    <div class="modal-card card glass">
+      <div class="modal-header">
+        <h3>Research Study, Methods & Reference Verification</h3>
+        <button class="btn-icon" id="btnCloseModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <h4>1. Background & Internship Context</h4>
+        <p>This project is based on the research study <strong>"STUDY ON PCG SIGNAL PROCESSING BASED AUTOMATED DETECTION
+            OF HEART VALVE DISEASES USING ML TECHNIQUES"</strong> (Summer Internship carried out in June-July 2023 by
+          <strong>Titas Routh</strong>, Applied Electronics & Instrumentation Engineering Department, Techno Main Salt
+          Lake, under the guidance of <strong>Prof. (Dr.) Amitava Chatterjee</strong>, Department of Electrical
+          Engineering, Jadavpur University, Kolkata).</p>
+
+        <h4>2. Database Reference [24]</h4>
+        <p>The dataset originates from <strong>G.-Y. Son, S. Kwon, et al.</strong> (2018), <em>"Classification of heart
+            sound signal using multiple features"</em>, Applied Sciences, 8(12), 2344, hosted on GitHub at
+          <code>yaseen21khan/Classification-of-Heart-Sound-Signal-Using-Multiple-Features-</code>. Total 1,000
+          recordings (200/class, 8,000 Hz, 3 cardiac cycles per recording).</p>
+
+        <h4>3. Experimental Reproduction Summary</h4>
+        <ul>
+          <li><strong>Table 1(a) DWT vs. Dropout% (SVM)</strong>: Validated the report's finding that partial feature
+            selection and unscaled moments alter polynomial kernel margins.</li>
+          <li><strong>Table 1(b) DWT vs. Selection% (SVM & KNN)</strong>: Validated performance peaks around 40%–60%
+            ANOVA feature selection.</li>
+          <li><strong>Table 2(a) & 2(b) MFCC Selection%</strong>: Validated KNN classification accuracy peaking near 40%
+            selection.</li>
+          <li><strong>Enhanced Multimodal Feature Set</strong>: Extended the 43-dim baseline into an 80-dim feature set
+            capturing spectral dynamics (Centroid, Spread, Rolloff, Flatness) and Hilbert envelope dynamics, reaching
+            99.60% 10-fold CV accuracy.</li>
+        </ul>
+
+        <h4>4. Model Classification Visualizations</h4>
+        <p>Comprehensive 4-panel diagnostic figures generated from the 1,000-recording benchmark dataset:</p>
+        <div style="display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap;">
+          <a href="assets/svm_classification_analysis.png" target="_blank" class="btn btn-secondary" style="flex: 1 1 240px; text-align: center; text-decoration: none; font-size: 0.85rem; padding: 10px;">
+            📊 View SVM Analysis Figure (Manifold, CM, ROC, Kernel)
+          </a>
+          <a href="assets/knn_classification_analysis.png" target="_blank" class="btn btn-secondary" style="flex: 1 1 240px; text-align: center; text-decoration: none; font-size: 0.85rem; padding: 10px;">
+            📈 View KNN Analysis Figure (Voronoi Regions, CM, ROC, K-Tuning)
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <p>CardioAcoustics AI • Built for non-invasive cardiovascular screening research • GitHub Pages Ready</p>
+  </footer>
+
+  <!-- Audio Context & In-Browser Inference Engine -->
+  <script src="model_data.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>

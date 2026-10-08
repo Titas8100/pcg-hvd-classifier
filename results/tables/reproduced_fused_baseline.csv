@@ -1,0 +1,3 @@
+Method,Classifier,Accuracy%
+Combined (DWT+MFCC),Quadratic SVM,46.67
+Combined (DWT+MFCC),KNN (k=5),65.67
